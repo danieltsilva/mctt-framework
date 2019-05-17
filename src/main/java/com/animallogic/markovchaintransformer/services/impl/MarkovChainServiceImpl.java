@@ -31,7 +31,6 @@ public class MarkovChainServiceImpl implements MarkovChainService {
 
     private Map<String, List<String>> createTransitionMatrix(String[] words, int order) {
         log.debug("SERVICE: createTransitionMatrix countOfWords:{} order:{}", words.length, order);
-
         Map<String, List<String>> transitionMatrix = new HashMap<>();
 
         // Iterating through all words
@@ -50,49 +49,61 @@ public class MarkovChainServiceImpl implements MarkovChainService {
             transitionMatrix
                     .computeIfAbsent( prefix.toString(),  k -> new ArrayList<>())
                     .add(value);
-
         }
         log.debug("Transition Matrix created. Number of prefixes mapped: {}", transitionMatrix.size());
 
         return transitionMatrix;
     }
 
-    private String markovTransformation(String fileName, int keySize, int outputSize) throws MyFileNotFoundException {
-        log.info("SERVICE: markovTransformation {} {} {}", fileName, keySize, outputSize);
+    private String generateTextWithMarkovChain(Map<String, List<String>> transMatrix, int order, int outputSize) {
+        // List index to iterate through output text
+        int n = 0;
 
-        if (keySize < 1) throw new IllegalArgumentException("Key size can't be less than 1");
+        // Get one random prefix
+        String prefix = (String) transMatrix.keySet().toArray()[r.nextInt(transMatrix.size())];
+        List<String> output = new ArrayList<>(Arrays.asList(prefix.split(" ")));
+
+        while (true) {
+            List<String> suffix = transMatrix.get(prefix);
+
+            if (suffix.size() == 1) {
+
+                if (Objects.equals(suffix.get(0), "")) return output.parallelStream().reduce("", (a, b) -> a + " " + b);
+
+                // if there is just one suffix for that prefix, add it to the output
+                output.add(suffix.get(0));
+            } else {
+                // if there are more then one option of suffix for that prefix, choose one randomly between their options
+                output.add(suffix.get(r.nextInt(suffix.size())));
+            }
+
+            // If the text reached the output size, return the
+            if (output.size() >= outputSize) return output.parallelStream().limit(outputSize).reduce("", (a, b) -> a + " " + b);
+            n++;
+            prefix = output.parallelStream().skip(n).limit(order).reduce("", (a, b) -> a + " " + b).trim();
+            log.info("n={} s={}", n, output.size());
+        }
+    }
+
+    private String markovTransformation(String fileName, int order, int outputSize) throws MyFileNotFoundException {
+        log.info("SERVICE: markovTransformation {} {} {}", fileName, order, outputSize);
+
+        if (order < 1) throw new IllegalArgumentException("Order can't be less than 1");
 
         byte[] bytes = fileStorageService.loadFileAsBytes(fileName);
 
         //TODO improve text cleaning
         String[] words = new String(bytes).trim().split(" ");
-        if (outputSize < keySize || outputSize >= words.length) {
-            log.error("outputSize: {}, keySize: {}, wordsLenght: {}", outputSize, keySize, words.length);
+        if (outputSize < order || outputSize >= words.length) {
+            log.error("outputSize: {}, keySize: {}, wordsLenght: {}", outputSize, order, words.length);
             throw new IllegalArgumentException("Output size is out of range");
         }
 
         // Creating Transitional Matrix
-        Map<String, List<String>> transMatrix = createTransitionMatrix(words, keySize);
+        Map<String, List<String>> transMatrix = createTransitionMatrix(words, order);
 
-        int n = 0;
-        int rn = r.nextInt(transMatrix.size());
-        String prefix = (String) transMatrix.keySet().toArray()[rn];
-        List<String> output = new ArrayList<>(Arrays.asList(prefix.split(" ")));
-
-        //TODO decouple text generator logic
-        while (true) {
-            List<String> suffix = transMatrix.get(prefix);
-            if (suffix.size() == 1) {
-                if (Objects.equals(suffix.get(0), "")) return output.parallelStream().reduce("", (a, b) -> a + " " + b);
-                output.add(suffix.get(0));
-            } else {
-                rn = r.nextInt(suffix.size());
-                output.add(suffix.get(rn));
-            }
-            if (output.size() >= outputSize) return output.parallelStream().limit(outputSize).reduce("", (a, b) -> a + " " + b);
-            n++;
-            prefix = output.parallelStream().skip(n).limit(keySize).reduce("", (a, b) -> a + " " + b).trim();
-        }
+        // Generate text using the markov chain transitional matrix
+        return generateTextWithMarkovChain(transMatrix, order, outputSize);
     }
 
 }

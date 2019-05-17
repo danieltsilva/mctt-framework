@@ -28,7 +28,7 @@ public class TextTransformerController {
         mrkvTxt = markovChainSerice.markovChainText(markovRequest.getFileName(), markovRequest.getOrder(), markovRequest.getOutputSize());
 
         return MarkovResponse.builder()
-                .markovText("Text create by Markov Chain using base text ".concat(mrkvTxt))
+                .markovText(mrkvTxt)
                 .build();
     }
 

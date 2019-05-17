@@ -29,14 +29,14 @@ public class FileController {
 
         // Store file
         String fileName = fileStorageService.storeFile(file);
-
         log.debug("File {} uploaded", fileName);
 
         // Create a URI link for download file just uploaded
         String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/download/")
+                .path("/file/download/")
                 .path(fileName)
                 .toUriString();
+        log.debug("File Download URI: {}", fileDownloadUri);
 
         return UploadFileResponse.builder()
                 .fileName(fileName)
@@ -46,25 +46,27 @@ public class FileController {
                 .build();
     }
 
-    //FIXME Resource not found
     @GetMapping("/download/{fileName:.+}")
     public ResponseEntity<Resource> downloadFile(@PathVariable String fileName, HttpServletRequest request) {
         log.info("CONTROLLER: downloadFile {}", fileName);
 
         // Load file as Resource
         Resource resource = fileStorageService.loadFileAsResource(fileName);
+        log.debug("File is readable: {}", resource.isReadable());
 
         // Try to determine file's content type
         String contentType = null;
         try {
             contentType = request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
+            log.debug("ContentType File: {}", contentType);
         } catch (IOException ex) {
-            log.info("Could not determine file type.");
+            log.warn("Could not determine file type.");
         }
 
         // Fallback to the default content type if type could not be determined
         if(contentType == null) {
             contentType = "application/octet-stream";
+            log.debug("Setting ContentType as {}", contentType);
         }
 
         return ResponseEntity.ok()

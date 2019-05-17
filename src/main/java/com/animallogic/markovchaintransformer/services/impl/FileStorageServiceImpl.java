@@ -39,6 +39,8 @@ public class FileStorageServiceImpl implements FileStorageService {
 
     @Override
     public String storeFile(MultipartFile file) {
+        log.info("SERVICE: storeFile {}", file.getName());
+
         // Normalize file name
         String fileName = StringUtils.cleanPath(file.getOriginalFilename());
 
@@ -54,12 +56,15 @@ public class FileStorageServiceImpl implements FileStorageService {
 
             return fileName;
         } catch (IOException ex) {
+            log.error("Could not store file " + fileName, ex);
             throw new FileStorageException("Could not store file " + fileName + ". Please try again!", ex);
         }
     }
 
     @Override
     public Resource loadFileAsResource(String fileName) {
+        log.info("SERVICE: loadFileAsResource {}", fileName);
+
         try {
             Path filePath = this.fileStorageLocation.resolve(fileName).normalize();
             Resource resource = new UrlResource(filePath.toUri());
@@ -69,7 +74,24 @@ public class FileStorageServiceImpl implements FileStorageService {
                 throw new MyFileNotFoundException("File not found " + fileName);
             }
         } catch (MalformedURLException ex) {
+            log.error("Could not store file " + fileName, ex);
             throw new MyFileNotFoundException("File not found " + fileName, ex);
         }
     }
+
+    @Override
+    public byte[] loadFileAsBytes(String fileName) {
+        log.info("SERVICE: loadFileAsBytes {}", fileName);
+
+        try {
+            Path filePath = this.fileStorageLocation.resolve(fileName).normalize();
+
+            return Files.readAllBytes(filePath);
+
+        } catch (IOException ex) {
+            log.error("Could not store file " + fileName, ex);
+            throw new MyFileNotFoundException("File not found " + fileName, ex);
+        }
+    }
+
 }

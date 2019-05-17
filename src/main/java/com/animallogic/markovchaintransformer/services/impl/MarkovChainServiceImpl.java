@@ -1,18 +1,20 @@
 package com.animallogic.markovchaintransformer.services.impl;
 
+import com.animallogic.markovchaintransformer.services.FileStorageService;
 import com.animallogic.markovchaintransformer.services.MarkovChainService;
+import com.animallogic.markovchaintransformer.services.exceptions.MyFileNotFoundException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 
 @Slf4j
 @Service
 public class MarkovChainServiceImpl implements MarkovChainService {
+
+    @Autowired
+    FileStorageService fileStorageService;
 
     private static Random r = new Random();
 
@@ -20,19 +22,23 @@ public class MarkovChainServiceImpl implements MarkovChainService {
     public String markovChainText() {
         String mcText = "";
         try {
-            mcText =  markov("sample.txt", 2, 100);
-        } catch (IOException e) {
-            e.printStackTrace();
+            mcText =  markovTransformation("sample.txt", 2, 20);
+        } catch (MyFileNotFoundException ex) {
+            ex.printStackTrace();
         }
         return mcText;
     }
 
-    private static String markov(String filePath, int keySize, int outputSize) throws IOException {
+    private String markovTransformation(String fileName, int keySize, int outputSize) throws MyFileNotFoundException {
+        log.info("SERVICE: markovTransformation {} {} {}", fileName, keySize, outputSize);
+
         if (keySize < 1) throw new IllegalArgumentException("Key size can't be less than 1");
-        Path path = Paths.get(filePath);
-        byte[] bytes = Files.readAllBytes(path);
+
+        byte[] bytes = fileStorageService.loadFileAsBytes(fileName);
+
         String[] words = new String(bytes).trim().split(" ");
         if (outputSize < keySize || outputSize >= words.length) {
+            log.error("outputSize: {}, keySize: {}, wordsLenght: {}", outputSize, keySize, words.length);
             throw new IllegalArgumentException("Output size is out of range");
         }
         Map<String, List<String>> dict = new HashMap<>();

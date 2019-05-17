@@ -9,4 +9,6 @@ public interface FileStorageService {
 
     public Resource loadFileAsResource(String fileName);
 
+    public byte[] loadFileAsBytes(String fileName);
+
 }

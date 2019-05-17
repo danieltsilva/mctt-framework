@@ -1,4 +1,4 @@
-package com.animallogic.task.markovchaintransformer;
+package com.animallogic.markovchaintransformer;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

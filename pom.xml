@@ -24,6 +24,7 @@
 		<lombok.version>1.18.6</lombok.version>
 		<spring-orm.version>5.1.5.RELEASE</spring-orm.version>
 		<hibernate.version>5.4.1.Final</hibernate.version>
+		<jetbrains.annotation.version>13.0</jetbrains.annotation.version>
 	</properties>
 
 	<dependencies>
@@ -96,7 +97,7 @@
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>annotations</artifactId>
-            <version>RELEASE</version>
+            <version>${jetbrains.annotation.version}</version>
             <scope>compile</scope>
         </dependency>
 

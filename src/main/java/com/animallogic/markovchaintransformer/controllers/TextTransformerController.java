@@ -19,13 +19,10 @@ public class TextTransformerController {
     MarkovChainService markovChainSerice;
 
     @GetMapping("/markov")
-    public MarkovResponse markovTraining(@RequestBody MarkovRequest markovRequest)
-    {
+    public MarkovResponse markovTraining(@RequestBody MarkovRequest markovRequest) {
         log.info("CONTROLLER: markovTraining");
-        log.info(markovRequest.toString());
 
-        String mrkvTxt = "";
-        mrkvTxt = markovChainSerice.markovChainText(markovRequest.getFileName(), markovRequest.getOrder(), markovRequest.getOutputSize());
+        String mrkvTxt = markovChainSerice.markovChainText(markovRequest.getFileName(), markovRequest.getOrder(), markovRequest.getOutputSize());
 
         return MarkovResponse.builder()
                 .markovText(mrkvTxt)

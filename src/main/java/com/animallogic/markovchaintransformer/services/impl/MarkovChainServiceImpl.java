@@ -20,11 +20,14 @@ public class MarkovChainServiceImpl implements MarkovChainService {
 
     @Override
     public String markovChainText(String fileName, int order, int outputSize) {
+        log.info("SERVICE: markovTransformation {} {} {}", fileName, order, outputSize);
+
         String mcText = "";
         try {
             mcText =  markovTransformation(fileName, order, outputSize);
         } catch (MyFileNotFoundException ex) {
-            ex.printStackTrace();
+            log.error("File not found", ex);
+            log.error("fileName: {}, order: {}, outputSize: {}", outputSize, order, outputSize);
         }
         return mcText;
     }
@@ -56,19 +59,30 @@ public class MarkovChainServiceImpl implements MarkovChainService {
     }
 
     private String generateTextWithMarkovChain(Map<String, List<String>> transMatrix, int order, int outputSize) {
-        // List index to iterate through output text
+        log.debug("SERVICE: generateTextWithMarkovChain transMatrix.size:{} order:{} outputSize:{}",transMatrix.size(),order,outputSize);
+
+        // Index to follow output
         int n = 0;
 
         // Get one random prefix
         String prefix = (String) transMatrix.keySet().toArray()[r.nextInt(transMatrix.size())];
+
+        // Initialize the output according the random prefix
         List<String> output = new ArrayList<>(Arrays.asList(prefix.split(" ")));
+        log.debug("Starting with prefix=[{}] and output=[{}]", prefix, output.toString());
 
         while (true) {
+
+            // If the transitional matrix doesn't have the prefix,
+            // it means the prefix is the last one and the text will
+            // be finished before reach outputSize
+            if(!transMatrix.containsKey(prefix)) break;
+
             List<String> suffix = transMatrix.get(prefix);
 
             if (suffix.size() == 1) {
 
-                if (Objects.equals(suffix.get(0), "")) return output.stream().reduce("", (a, b) -> a + " " + b);
+                if (Objects.equals(suffix.get(0), "")) break;
 
                 // if there is just one suffix for that prefix, add it to the output
                 output.add(suffix.get(0));
@@ -77,16 +91,19 @@ public class MarkovChainServiceImpl implements MarkovChainService {
                 output.add(suffix.get(r.nextInt(suffix.size())));
             }
 
-            // If the text reached the output size, return the
-            if (output.size() >= outputSize) return output.stream().limit(outputSize).reduce("", (a, b) -> a + " " + b);
+            // Return text if output size reached
+            if (output.size() >= outputSize) return output.stream().limit(outputSize).reduce("", (a, b) -> a + " " + b).trim();
             n++;
-            prefix = output.stream().skip(n).limit(order).reduce("", (a, b) -> a + " " + b).trim(); //TODO Improvement: trim doesn't work if changed to parallelStream
-            log.info("n={} s={}", n, output.size());
+            prefix = output.stream().skip(n).limit(order).reduce("", (a, b) -> a + " " + b).trim();
+            //TODO Improvement: trim doesn't work if changed to parallelStream
         }
+
+        //  Building text output
+        return output.stream().reduce("", (a, b) -> a + " " + b).trim();
     }
 
     private String markovTransformation(String fileName, int order, int outputSize) throws MyFileNotFoundException {
-        log.info("SERVICE: markovTransformation {} {} {}", fileName, order, outputSize);
+        log.debug("SERVICE: markovTransformation {} {} {}", fileName, order, outputSize);
 
         if (order < 1) throw new IllegalArgumentException("Order can't be less than 1");
 

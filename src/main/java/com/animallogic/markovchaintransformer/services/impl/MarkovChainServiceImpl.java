@@ -68,7 +68,7 @@ public class MarkovChainServiceImpl implements MarkovChainService {
 
             if (suffix.size() == 1) {
 
-                if (Objects.equals(suffix.get(0), "")) return output.parallelStream().reduce("", (a, b) -> a + " " + b);
+                if (Objects.equals(suffix.get(0), "")) return output.stream().reduce("", (a, b) -> a + " " + b);
 
                 // if there is just one suffix for that prefix, add it to the output
                 output.add(suffix.get(0));
@@ -78,9 +78,9 @@ public class MarkovChainServiceImpl implements MarkovChainService {
             }
 
             // If the text reached the output size, return the
-            if (output.size() >= outputSize) return output.parallelStream().limit(outputSize).reduce("", (a, b) -> a + " " + b);
+            if (output.size() >= outputSize) return output.stream().limit(outputSize).reduce("", (a, b) -> a + " " + b);
             n++;
-            prefix = output.parallelStream().skip(n).limit(order).reduce("", (a, b) -> a + " " + b).trim();
+            prefix = output.stream().skip(n).limit(order).reduce("", (a, b) -> a + " " + b).trim(); //TODO Improvement: trim doesn't work if changed to parallelStream
             log.info("n={} s={}", n, output.size());
         }
     }

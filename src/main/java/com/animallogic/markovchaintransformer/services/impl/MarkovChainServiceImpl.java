@@ -19,10 +19,10 @@ public class MarkovChainServiceImpl implements MarkovChainService {
     private static Random r = new Random();
 
     @Override
-    public String markovChainText() {
+    public String markovChainText(String fileName, int order, int outputSize) {
         String mcText = "";
         try {
-            mcText =  markovTransformation("sample.txt", 2, 20);
+            mcText =  markovTransformation(fileName, order, outputSize);
         } catch (MyFileNotFoundException ex) {
             ex.printStackTrace();
         }

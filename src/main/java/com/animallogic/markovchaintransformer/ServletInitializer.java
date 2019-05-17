@@ -1,4 +1,4 @@
-package com.animallogic.task.markovchaintransformer;
+package com.animallogic.markovchaintransformer;
 
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;

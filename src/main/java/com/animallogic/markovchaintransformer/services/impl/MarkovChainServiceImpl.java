@@ -29,6 +29,29 @@ public class MarkovChainServiceImpl implements MarkovChainService {
         return mcText;
     }
 
+    private Map<String, List<String>> createTransitionMatrix(String[] words, int order) {
+
+        Map<String, List<String>> transitionMatrix = new HashMap<>();
+
+        //TODO improve loops and try to use Streams
+        for (int i = 0; i < (words.length - order); ++i) {
+            StringBuilder key = new StringBuilder(words[i]);
+            for (int j = i + 1; j < i + order; ++j) {
+                key.append(' ').append(words[j]);
+            }
+            String value = (i + order < words.length) ? words[i + order] : "";
+            if (!transitionMatrix.containsKey(key.toString())) {
+                ArrayList<String> list = new ArrayList<>();
+                list.add(value);
+                transitionMatrix.put(key.toString(), list);
+            } else {
+                transitionMatrix.get(key.toString()).add(value);
+            }
+        }
+
+        return transitionMatrix;
+    }
+
     private String markovTransformation(String fileName, int keySize, int outputSize) throws MyFileNotFoundException {
         log.info("SERVICE: markovTransformation {} {} {}", fileName, keySize, outputSize);
 
@@ -36,6 +59,7 @@ public class MarkovChainServiceImpl implements MarkovChainService {
 
         byte[] bytes = fileStorageService.loadFileAsBytes(fileName);
 
+        //TODO improve text cleaning
         String[] words = new String(bytes).trim().split(" ");
         if (outputSize < keySize || outputSize >= words.length) {
             log.error("outputSize: {}, keySize: {}, wordsLenght: {}", outputSize, keySize, words.length);
@@ -43,6 +67,7 @@ public class MarkovChainServiceImpl implements MarkovChainService {
         }
         Map<String, List<String>> dict = new HashMap<>();
 
+        //TODO decouple transitional matrix logic
         for (int i = 0; i < (words.length - keySize); ++i) {
             StringBuilder key = new StringBuilder(words[i]);
             for (int j = i + 1; j < i + keySize; ++j) {
@@ -63,6 +88,7 @@ public class MarkovChainServiceImpl implements MarkovChainService {
         String prefix = (String) dict.keySet().toArray()[rn];
         List<String> output = new ArrayList<>(Arrays.asList(prefix.split(" ")));
 
+        //TODO decouple text generator logic
         while (true) {
             List<String> suffix = dict.get(prefix);
             if (suffix.size() == 1) {

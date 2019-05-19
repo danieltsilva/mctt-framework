@@ -18,6 +18,7 @@ import java.io.IOException;
 
 @Slf4j
 @RestController
+@CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping("/file")
 public class FileController {
 

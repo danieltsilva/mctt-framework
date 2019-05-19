@@ -112,7 +112,7 @@ public class MarkovChainServiceImpl implements MarkovChainService {
         //TODO improve text cleaning
         String[] words = new String(bytes).trim().split(" ");
         if (outputSize < order || outputSize >= words.length) {
-            log.error("outputSize: {}, keySize: {}, wordsLenght: {}", outputSize, order, words.length);
+            log.error("outputSize: {}, order: {}, wordsLenght: {}", outputSize, order, words.length);
             throw new IllegalArgumentException("Output size is out of range");
         }
 

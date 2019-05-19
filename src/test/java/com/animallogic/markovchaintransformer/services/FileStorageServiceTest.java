@@ -29,7 +29,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 @WebAppConfiguration
 public class FileStorageServiceTest {
 
-
     @Autowired
     private WebApplicationContext wac;
     private MockMvc mockMvc;

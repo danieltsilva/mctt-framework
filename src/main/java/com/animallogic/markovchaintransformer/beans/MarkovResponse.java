@@ -8,7 +8,5 @@ import lombok.Setter;
 @Setter
 @Builder
 public class MarkovResponse {
-
     private String markovText;
-
 }

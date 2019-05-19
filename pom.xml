@@ -58,12 +58,12 @@
 			<scope>runtime</scope>
 		</dependency>
 
-			<!-- MySQL Connector -->
-			<dependency>
-				<groupId>mysql</groupId>
-				<artifactId>mysql-connector-java</artifactId>
-				<scope>runtime</scope>
-			</dependency>
+		<!-- MySQL Connector -->
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<scope>runtime</scope>
+		</dependency>
 
 		<!-- jUnit  https://mvnrepository.com/artifact/junit/junit -->
 		<dependency>

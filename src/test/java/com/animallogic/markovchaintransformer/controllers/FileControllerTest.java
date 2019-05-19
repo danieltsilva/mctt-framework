@@ -59,29 +59,6 @@ public class FileControllerTest {
         assertThat(controller).isNotNull();
     }
 
-//    @Test
-//    public void shouldUploadFile() throws Exception {
-//        // given
-//        ResultMatcher ok = status().isOk();
-//
-//        File file = new File(uploadDir + "/" + FILE_NAME);
-//        file.delete(); //delete if file exits
-//
-//        MockMultipartFile mockMultipartFile = new MockMultipartFile("file",FILE_NAME,
-//                "application/json", "test simple data for upload".getBytes());
-//
-//        // when
-//        MockHttpServletRequestBuilder builder =
-//                MockMvcRequestBuilders.fileUpload("/file/upload")
-//                .file(mockMultipartFile);
-//
-//        // then
-//        this.mockMvc.perform(builder).andExpect(ok)
-//                .andDo(MockMvcResultHandlers.print());
-//
-//        Assert.assertTrue(file.exists());
-//    }
-
     @Test
     public void shouldUploadFileSucceed() throws Exception {
         // given

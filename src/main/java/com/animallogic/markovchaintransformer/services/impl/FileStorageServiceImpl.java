@@ -65,7 +65,7 @@ public class FileStorageServiceImpl implements FileStorageService {
     @Override
     public Resource loadFileAsResource(@NonNull String fileName) {
         log.info("SERVICE: loadFileAsResource {}", fileName);
-        
+
         try {
             Path filePath = this.fileStorageLocation.resolve(fileName).normalize();
             Resource resource = new UrlResource(filePath.toUri());

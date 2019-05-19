@@ -24,6 +24,8 @@
 		<lombok.version>1.18.6</lombok.version>
 		<spring-orm.version>5.1.5.RELEASE</spring-orm.version>
 		<hibernate.version>5.4.1.Final</hibernate.version>
+		<jetbrains.annotation.version>13.0</jetbrains.annotation.version>
+		<asciidoctor.version>1.5.3</asciidoctor.version>
 	</properties>
 
 	<dependencies>
@@ -107,7 +109,7 @@
 			<plugin>
 				<groupId>org.asciidoctor</groupId>
 				<artifactId>asciidoctor-maven-plugin</artifactId>
-				<version>1.5.3</version>
+				<version>${asciidoctor.version}</version>
 				<executions>
 					<execution>
 						<id>generate-docs</id>

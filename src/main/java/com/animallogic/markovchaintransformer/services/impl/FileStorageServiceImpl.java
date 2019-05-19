@@ -4,6 +4,7 @@ import com.animallogic.markovchaintransformer.properties.FileStorageProperties;
 import com.animallogic.markovchaintransformer.services.FileStorageService;
 import com.animallogic.markovchaintransformer.services.exceptions.FileStorageException;
 import com.animallogic.markovchaintransformer.services.exceptions.MyFileNotFoundException;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -38,7 +39,7 @@ public class FileStorageServiceImpl implements FileStorageService {
     }
 
     @Override
-    public String storeFile(MultipartFile file) {
+    public String storeFile(@NonNull MultipartFile file) {
         // Normalize file name
         String fileName = StringUtils.cleanPath(file.getOriginalFilename());
 
@@ -59,7 +60,7 @@ public class FileStorageServiceImpl implements FileStorageService {
     }
 
     @Override
-    public Resource loadFileAsResource(String fileName) {
+    public Resource loadFileAsResource(@NonNull String fileName) {
         try {
             Path filePath = this.fileStorageLocation.resolve(fileName).normalize();
             Resource resource = new UrlResource(filePath.toUri());

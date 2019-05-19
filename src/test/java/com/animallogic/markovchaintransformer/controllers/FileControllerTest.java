@@ -1,29 +1,32 @@
 package com.animallogic.markovchaintransformer.controllers;
 
-import org.junit.Assert;
+import com.animallogic.markovchaintransformer.services.FileStorageService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-
-import java.io.File;
+import org.springframework.web.multipart.MultipartFile;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -34,61 +37,139 @@ public class FileControllerTest {
     private WebApplicationContext wac;
     private MockMvc mockMvc;
 
-    @Autowired
-    private FileController controller = new FileController();
+    @MockBean
+    private FileStorageService fileStorageService;
 
-    @Value("${file.upload-dir}")
-    private String uploadDir;
+    @Autowired
+    private FileController controller;
+
+    private String testFilesDir;
+    private String FILE_NAME = "test.txt";
 
     @Before
     public void init() {
         DefaultMockMvcBuilder builder = MockMvcBuilders.webAppContextSetup(this.wac);
         this.mockMvc = builder.build();
+
+        testFilesDir = FileControllerTest.class.getClassLoader().getResource("./static/").getPath();
     }
 
     @Test
-    public void contexLoads() throws Exception {
+    public void shouldLoadContext() throws Exception {
         assertThat(controller).isNotNull();
     }
 
+//    @Test
+//    public void shouldUploadFile() throws Exception {
+//        // given
+//        ResultMatcher ok = status().isOk();
+//
+//        File file = new File(uploadDir + "/" + FILE_NAME);
+//        file.delete(); //delete if file exits
+//
+//        MockMultipartFile mockMultipartFile = new MockMultipartFile("file",FILE_NAME,
+//                "application/json", "test simple data for upload".getBytes());
+//
+//        // when
+//        MockHttpServletRequestBuilder builder =
+//                MockMvcRequestBuilders.fileUpload("/file/upload")
+//                .file(mockMultipartFile);
+//
+//        // then
+//        this.mockMvc.perform(builder).andExpect(ok)
+//                .andDo(MockMvcResultHandlers.print());
+//
+//        Assert.assertTrue(file.exists());
+//    }
+
     @Test
-    public void uploadFile() throws Exception {
+    public void shouldUploadFileSucceed() throws Exception {
         // given
-        ResultMatcher ok = MockMvcResultMatchers.status().isOk();
+        MockMultipartFile mockMultipartFile = new MockMultipartFile("file",FILE_NAME,
+                "application/json", "test simple data for upload".getBytes());
+        when(fileStorageService.storeFile(any(MultipartFile.class))).thenReturn(FILE_NAME);
 
-        String fileName = "test.txt";
-        File file = new File(uploadDir + "/" + fileName);
-        file.delete(); //delete if file exits
-
-        MockMultipartFile mockMultipartFile = new MockMultipartFile("file",fileName,
-                "application/json", "test simple data for upload OTO".getBytes());
 
         // when
         MockHttpServletRequestBuilder builder =
                 MockMvcRequestBuilders.fileUpload("/file/upload")
-                .file(mockMultipartFile);
-
-        // then
-        this.mockMvc.perform(builder).andExpect(ok)
-                .andDo(MockMvcResultHandlers.print());
-
-        Assert.assertTrue(file.exists());
-    }
-
-    @Test
-    public void downloadFile() throws Exception {
-        // given
-        ResultMatcher ok = MockMvcResultMatchers.status().isOk();
-        ResultMatcher contentType = MockMvcResultMatchers.content().contentType(MediaType.TEXT_PLAIN);
-
-        // when
-        MockHttpServletRequestBuilder builder =
-                MockMvcRequestBuilders.get("/file/download/test.txt");
+                        .file(mockMultipartFile);
 
         // then
         this.mockMvc.perform(builder)
-                .andExpect(ok)
-                .andExpect(contentType)
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print());
+    }
+
+    @Test
+    public void shouldUploadFileReturnDownloadUri() throws Exception {
+        // given
+        MockMultipartFile mockMultipartFile = new MockMultipartFile("file",FILE_NAME,
+                "application/json", "test simple data for upload".getBytes());
+        when(fileStorageService.storeFile(any(MultipartFile.class))).thenReturn(FILE_NAME);
+
+
+        // when
+        MockHttpServletRequestBuilder builder =
+                MockMvcRequestBuilders.fileUpload("/file/upload")
+                        .file(mockMultipartFile);
+
+        // then
+        this.mockMvc.perform(builder)
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("http://localhost/file/download/"+FILE_NAME)))
+                .andDo(MockMvcResultHandlers.print());
+    }
+
+    @Test
+    public void shouldUploadFileReturnJsonUTF8() throws Exception {
+        // given
+        MockMultipartFile mockMultipartFile = new MockMultipartFile("file",FILE_NAME,
+                "application/json", "test simple data for upload".getBytes());
+        when(fileStorageService.storeFile(any(MultipartFile.class))).thenReturn(FILE_NAME);
+
+
+        // when
+        MockHttpServletRequestBuilder builder =
+                MockMvcRequestBuilders.fileUpload("/file/upload")
+                        .file(mockMultipartFile);
+
+        // then
+        this.mockMvc.perform(builder)
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andDo(MockMvcResultHandlers.print());
+    }
+
+    @Test
+    public void shouldDownloadFileSucceed() throws Exception {
+        // given
+        when(fileStorageService.loadFileAsResource(FILE_NAME)).thenReturn(new FileSystemResource(testFilesDir+FILE_NAME));
+
+        // when
+        MockHttpServletRequestBuilder builder =
+                MockMvcRequestBuilders.get("/file/download/"+FILE_NAME);
+
+        // then
+        this.mockMvc.perform(builder)
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print());
+
+    }
+
+    @Test
+    public void shouldDownloadPlainTextFile() throws Exception {
+        // given
+        when(fileStorageService.loadFileAsResource(FILE_NAME)).thenReturn(new FileSystemResource(testFilesDir+FILE_NAME));
+
+        // when
+        MockHttpServletRequestBuilder builder =
+                MockMvcRequestBuilders.get("/file/download/"+FILE_NAME);
+
+        // then
+        this.mockMvc.perform(builder)
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.TEXT_PLAIN))
                 .andDo(MockMvcResultHandlers.print());
 
     }

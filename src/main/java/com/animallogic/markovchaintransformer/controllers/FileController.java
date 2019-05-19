@@ -2,6 +2,7 @@ package com.animallogic.markovchaintransformer.controllers;
 
 import com.animallogic.markovchaintransformer.beans.UploadFileResponse;
 import com.animallogic.markovchaintransformer.services.FileStorageService;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -24,7 +25,7 @@ public class FileController {
     FileStorageService fileStorageService;
 
     @PostMapping("/upload")
-    public UploadFileResponse uploadFile(@RequestParam("file") MultipartFile file) {
+    public UploadFileResponse uploadFile(@RequestParam("file") @NonNull MultipartFile file) {
         log.info("CONTROLLER: uploadFile");
 
         // Store file
@@ -47,7 +48,7 @@ public class FileController {
     }
 
     @GetMapping("/download/{fileName:.+}")
-    public ResponseEntity<Resource> downloadFile(@PathVariable String fileName, HttpServletRequest request) {
+    public ResponseEntity<Resource> downloadFile(@PathVariable @NonNull String fileName, HttpServletRequest request) {
         log.info("CONTROLLER: downloadFile {}", fileName);
 
         // Load file as Resource

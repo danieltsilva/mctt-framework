@@ -87,6 +87,70 @@ public class TextTransformerControllerTest {
     }
 
     @Test
+    public void shouldDoMarkovTrainingCrossOriginSucceed() throws Exception {
+        // given
+        JSONObject jsonRequest = new JSONObject()
+                .put(REQ_PARAM_ORDER, 2)
+                .put(REQ_PARAM_OUTPUTSIZE, 100)
+                .put(REQ_PARAM_FILENAME, FILE_NAME);
+
+        JSONObject jsonResponse = new JSONObject()
+                .put("message","response teste");
+
+        when(markovChainSerice.markovChainText(
+                jsonRequest.getString(REQ_PARAM_FILENAME),
+                jsonRequest.getInt(REQ_PARAM_ORDER),
+                jsonRequest.getInt(REQ_PARAM_OUTPUTSIZE)
+        ))
+                .thenReturn(jsonResponse.toString());
+
+
+        // when
+        MockHttpServletRequestBuilder builder = MockMvcRequestBuilders
+                .get("/api/markov")
+                .content(jsonRequest.toString())
+                .contentType(MediaType.APPLICATION_PROBLEM_JSON_UTF8)
+                .header("Origin", "http://localhost:3000");
+
+        this.mockMvc.perform(builder)
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print());
+
+    }
+
+    @Test
+    public void shouldDoMarkovTrainingCrossOriginFailed() throws Exception {
+        // given
+        JSONObject jsonRequest = new JSONObject()
+                .put(REQ_PARAM_ORDER, 2)
+                .put(REQ_PARAM_OUTPUTSIZE, 100)
+                .put(REQ_PARAM_FILENAME, FILE_NAME);
+
+        JSONObject jsonResponse = new JSONObject()
+                .put("message","response teste");
+
+        when(markovChainSerice.markovChainText(
+                jsonRequest.getString(REQ_PARAM_FILENAME),
+                jsonRequest.getInt(REQ_PARAM_ORDER),
+                jsonRequest.getInt(REQ_PARAM_OUTPUTSIZE)
+        ))
+                .thenReturn(jsonResponse.toString());
+
+
+        // when
+        MockHttpServletRequestBuilder builder = MockMvcRequestBuilders
+                .get("/api/markov")
+                .content(jsonRequest.toString())
+                .contentType(MediaType.APPLICATION_PROBLEM_JSON_UTF8)
+                .header("Origin", "http://www.google.com.au");
+
+        this.mockMvc.perform(builder)
+                .andExpect(status().isForbidden())
+                .andDo(MockMvcResultHandlers.print());
+
+    }
+
+    @Test
     public void shouldDoMarkovTrainingNull() throws Exception {
         // given
         JSONObject jsonRequest = new JSONObject()

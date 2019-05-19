@@ -79,6 +79,46 @@ public class FileControllerTest {
     }
 
     @Test
+    public void shouldUploadFileCrossOriginSucceed() throws Exception {
+        // given
+        MockMultipartFile mockMultipartFile = new MockMultipartFile("file",FILE_NAME,
+                "application/json", "test simple data for upload".getBytes());
+        when(fileStorageService.storeFile(any(MultipartFile.class))).thenReturn(FILE_NAME);
+
+
+        // when
+        MockHttpServletRequestBuilder builder =
+                MockMvcRequestBuilders.fileUpload("/file/upload")
+                        .file(mockMultipartFile)
+                        .header("Origin", "http://localhost:3000");
+
+        // then
+        this.mockMvc.perform(builder)
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print());
+    }
+
+    @Test
+    public void shouldUploadFileCrossOriginFailed() throws Exception {
+        // given
+        MockMultipartFile mockMultipartFile = new MockMultipartFile("file",FILE_NAME,
+                "application/json", "test simple data for upload".getBytes());
+        when(fileStorageService.storeFile(any(MultipartFile.class))).thenReturn(FILE_NAME);
+
+
+        // when
+        MockHttpServletRequestBuilder builder =
+                MockMvcRequestBuilders.fileUpload("/file/upload")
+                        .file(mockMultipartFile)
+                        .header("Origin", "http://stackoverflow.com/");
+
+        // then
+        this.mockMvc.perform(builder)
+                .andExpect(status().isForbidden())
+                .andDo(MockMvcResultHandlers.print());
+    }
+
+    @Test
     public void shouldUploadFileReturnDownloadUri() throws Exception {
         // given
         MockMultipartFile mockMultipartFile = new MockMultipartFile("file",FILE_NAME,
@@ -130,6 +170,40 @@ public class FileControllerTest {
         // then
         this.mockMvc.perform(builder)
                 .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print());
+
+    }
+
+    @Test
+    public void shouldDownloadFileCrossOriginSucceed() throws Exception {
+        // given
+        when(fileStorageService.loadFileAsResource(FILE_NAME)).thenReturn(new FileSystemResource(testFilesDir+FILE_NAME));
+
+        // when
+        MockHttpServletRequestBuilder builder =
+                MockMvcRequestBuilders.get("/file/download/"+FILE_NAME)
+                        .header("Origin", "http://localhost:3000");
+
+        // then
+        this.mockMvc.perform(builder)
+                .andExpect(status().isOk())
+                .andDo(MockMvcResultHandlers.print());
+
+    }
+
+    @Test
+    public void shouldDownloadFileCrossOriginFailed() throws Exception {
+        // given
+        when(fileStorageService.loadFileAsResource(FILE_NAME)).thenReturn(new FileSystemResource(testFilesDir+FILE_NAME));
+
+        // when
+        MockHttpServletRequestBuilder builder =
+                MockMvcRequestBuilders.get("/file/download/"+FILE_NAME)
+                        .header("Origin", "http://www.google.com/");
+
+        // then
+        this.mockMvc.perform(builder)
+                .andExpect(status().isForbidden())
                 .andDo(MockMvcResultHandlers.print());
 
     }

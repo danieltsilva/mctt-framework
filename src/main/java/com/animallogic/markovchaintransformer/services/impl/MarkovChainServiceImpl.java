@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+import static com.animallogic.markovchaintransformer.helpers.TextHelper.cleanTextContent;
+
 @Slf4j
 @Service
 public class MarkovChainServiceImpl implements MarkovChainService {
@@ -20,11 +22,16 @@ public class MarkovChainServiceImpl implements MarkovChainService {
 
     @Override
     public String markovChainText(String fileName, int order, int outputSize) {
-        log.info("SERVICE: markovTransformation {} {} {}", fileName, order, outputSize);
+        return markovChainTextWithFilter(fileName, order, outputSize, false);
+    }
+
+    @Override
+    public String markovChainTextWithFilter(String fileName, int order, int outputSize, boolean cleanText) {
+        log.info("SERVICE: markovChainTextWithFilter {} {} {} {}", fileName, order, outputSize, cleanText);
 
         String mcText = "";
         try {
-            mcText =  markovTransformation(fileName, order, outputSize);
+            mcText =  markovTransformation(fileName, order, outputSize, cleanText);
         } catch (MyFileNotFoundException ex) {
             log.error("File not found", ex);
             log.error("fileName: {}, order: {}, outputSize: {}", outputSize, order, outputSize);
@@ -68,7 +75,7 @@ public class MarkovChainServiceImpl implements MarkovChainService {
         String prefix = (String) transMatrix.keySet().toArray()[r.nextInt(transMatrix.size())];
 
         // Initialize the output according the random prefix
-        List<String> output = new ArrayList<>(Arrays.asList(prefix.split(" ")));
+        List<String> output = new ArrayList<>(Arrays.asList(prefix.split("\\s+")));
         log.debug("Starting with prefix=[{}] and output=[{}]", prefix, output.toString());
 
         while (true) {
@@ -102,15 +109,16 @@ public class MarkovChainServiceImpl implements MarkovChainService {
         return output.stream().reduce("", (a, b) -> a + " " + b).trim();
     }
 
-    private String markovTransformation(String fileName, int order, int outputSize) throws MyFileNotFoundException {
-        log.debug("SERVICE: markovTransformation {} {} {}", fileName, order, outputSize);
+    private String markovTransformation(String fileName, int order, int outputSize, boolean cleanText) throws MyFileNotFoundException {
+        log.debug("SERVICE: markovTransformation {} {} {} {}", fileName, order, outputSize, cleanText);
 
         if (order < 1) throw new IllegalArgumentException("Order can't be less than 1");
 
-        byte[] bytes = fileStorageService.loadFileAsBytes(fileName);
+        String fileText = new String(fileStorageService.loadFileAsBytes(fileName));
 
-        //TODO improve text cleaning
-        String[] words = new String(bytes).trim().split(" ");
+        if(cleanText) fileText = cleanTextContent(fileText);
+
+        String[] words = fileText.split("\\s+");
         if (outputSize < order || outputSize >= words.length) {
             log.error("outputSize: {}, order: {}, wordsLenght: {}", outputSize, order, words.length);
             throw new IllegalArgumentException("Output size is out of range");

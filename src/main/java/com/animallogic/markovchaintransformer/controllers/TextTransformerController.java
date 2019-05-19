@@ -22,7 +22,12 @@ public class TextTransformerController {
     public MarkovResponse markovTraining(@RequestBody MarkovRequest markovRequest) {
         log.info("CONTROLLER: markovTraining");
 
-        String mrkvTxt = markovChainSerice.markovChainText(markovRequest.getFileName(), markovRequest.getOrder(), markovRequest.getOutputSize());
+        String mrkvTxt = markovChainSerice.markovChainTextWithFilter(
+                markovRequest.getFileName(),
+                markovRequest.getOrder(),
+                markovRequest.getOutputSize(),
+                markovRequest.isCleanText()
+        );
 
         return MarkovResponse.builder()
                 .markovText(mrkvTxt)

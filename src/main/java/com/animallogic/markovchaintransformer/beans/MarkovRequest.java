@@ -12,5 +12,6 @@ public class MarkovRequest {
     private Integer order;
     private Integer outputSize;
     private String fileName;
+    private boolean cleanText = false;
 
 }
